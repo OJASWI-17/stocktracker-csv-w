@@ -1,7 +1,10 @@
 from django.shortcuts import render
+from django.http.response import HttpResponse
+
 from django.http import JsonResponse
 import pandas as pd
 from .tasks import update_stock
+from asgiref.sync import sync_to_async
 
 # Path to CSV file
 CSV_FILE_PATH = "C:/projects/stocktracker/stockproject/mainapp/generated_stock_data.csv"
@@ -47,7 +50,18 @@ def stockPicker(request):
     stock_picker = df["ticker"].unique().tolist()
     return render(request, "mainapp/stockpicker.html", {"stock_picker": stock_picker})
 
-def stockTracker(request):
+
+@sync_to_async
+def checkAuthenticated(request):
+    if not request.user.is_authenticated:
+        return False
+    else:
+        return True
+    
+async def stockTracker(request):
+    is_loginned = await checkAuthenticated(request)
+    if not is_loginned:
+        return HttpResponse("Login First")
     """View to fetch initial stock data and trigger Celery updates."""
     selected_stocks = request.GET.getlist("stock_picker")
 
