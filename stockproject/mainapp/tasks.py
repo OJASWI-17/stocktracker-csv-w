@@ -72,3 +72,7 @@ def update_stock(selected_stocks):
     finally:
         loop.close()  # Clean up the event loop  
 
+
+
+
+

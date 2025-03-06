@@ -11,6 +11,7 @@ class StockConsumer(AsyncWebsocketConsumer):
 
         task = PeriodicTask.objects.filter(name="every-10-seconds")
         if len(task)>0:
+            print("hello")
             task = task.first()
             args = json.loads(task.args)
             args = args[0]
@@ -36,6 +37,7 @@ class StockConsumer(AsyncWebsocketConsumer):
     
     
     async def connect(self):
+        
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"stock_{self.room_name}"
 
@@ -44,7 +46,7 @@ class StockConsumer(AsyncWebsocketConsumer):
         # Parse query_string
         query_params = parse_qs(self.scope["query_string"].decode())
 
-        print(query_params)
+        print("ojisis",query_params)
         stockpicker = query_params['stock_picker']
 
         # add to celery beat
@@ -106,12 +108,10 @@ class StockConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         message = copy.copy(message)
         user_stocks = await self.selectUserStocks()
-        
+
         keys = message.keys()
         for key in list(keys):
-            if key in user_stocks:
-                pass
-            else:
+            if key not in user_stocks:
                 del message[key]
         # Send message to WebSocket
         await self.send(text_data=json.dumps(message))
